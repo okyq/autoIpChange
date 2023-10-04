@@ -210,8 +210,8 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/changeip', methods=['POST'])
-def execute():
+@app.route('/changeip/', methods=['POST'])
+def changeip():
     logs.clear()
     password = request.form.get('password')
     if password != 'xxx': #输入一个校验码
