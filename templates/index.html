@@ -258,7 +258,7 @@ input:checked + .slider:before {
             loadingOverlay.style.display = 'flex';
 
             var xhr = new XMLHttpRequest();
-            xhr.open('POST', '/execute', true);
+            xhr.open('POST', '/changeip', true);
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === XMLHttpRequest.DONE) {
                     loadingOverlay.style.display = 'none';

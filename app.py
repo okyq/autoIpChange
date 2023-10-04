@@ -210,7 +210,7 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/execute', methods=['POST'])
+@app.route('/changeip', methods=['POST'])
 def execute():
     logs.clear()
     password = request.form.get('password')
