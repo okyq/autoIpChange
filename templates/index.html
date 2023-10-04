@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lightsail Auto Change IP by YQ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f1f1f1;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select {
+            width: 300px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        textarea {
+            width: 500px;
+            height: 200px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+            resize: none;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #log {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 500px;
+            height: 200px;
+            overflow-y: scroll;
+            background-color: white;
+        }
+
+        #log p {
+            margin: 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            display: none;
+        }
+
+        .loading-overlay .spinner {
+            border: 16px solid #f3f3f3;
+            border-top: 16px solid #3498db;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        /* Custom styling for the "仅新增DNS?" switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #4CAF50;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #4CAF50;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+/* Style the switch label */
+.switch-label {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 10px;
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lightsail Auto Change IP by YQ</h1>
+        <form id="form">
+            <label for="api_key">API Key:</label>
+            <input type="text" id="api_key" name="api_key" required>
+
+            <label for="email">邮箱:</label>
+            <input type="text" id="email" name="email" required>
+
+            <label for="zone_id">区域代码:</label>
+            <input type="text" id="zone_id" name="zone_id" required>
+
+            <label for="record_names">需要修改的域名 (英文逗号隔开):</label>
+            <input type="text" id="record_names" name="record_names" required>
+
+            <div id="record_content_div" style="display: none;">
+                <label for="record_content">记录内容（Ip或其他）:</label>
+                <input type="text" id="record_content" name="record_content" required>
+            </div>
+
+            <div id="tag_div" style="display: none;">
+                <label for="tag">新增或修改:</label>
+                <select id="tag" name="tag">
+                    <option value="1">新增</option>
+                    <option value="2">修改</option>
+                </select>
+            </div>
+
+            <div id="record_type_div" style="display: none;">
+                <label for="record_type">记录类型:</label>
+                <select id="record_type" name="record_type">
+                    <option value="A">A</option>
+                    <option value="CNAME">CNAME</option>
+                </select>
+            </div>
+
+            <div id="instance_name_div">
+                <label for="instance_name">实例名称:</label>
+                <input type="text" id="instance_name" name="instance_name" required>
+            </div>
+
+            <div id="region_name_div">
+                <label for="region_name">地区名称:</label>
+                <input type="text" id="region_name" name="region_name">
+            </div>
+
+            <label for="password">密码:</label>
+            <input type="password" id="password" name="password" required>
+
+            <label for="isDnsOnly">仅新增DNS？</label>
+            <input type="checkbox" id="isDnsOnly" class="switch" name="isDnsOnly" onclick="toggleDnsOnly()">
+
+            <br>
+
+            <button type="button" onclick="executeBusinessLogic()">Execute</button>
+        </form>
+
+        <div id="log"></div>
+
+        <div class="loading-overlay">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <script>
+        function executeBusinessLogic() {
+            var form = document.getElementById('form');
+            var formData = new FormData(form);
+
+            var logDiv = document.getElementById('log');
+            logDiv.innerHTML = '';
+
+            var loadingOverlay = document.querySelector('.loading-overlay');
+            loadingOverlay.style.display = 'flex';
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/execute', true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    loadingOverlay.style.display = 'none';
+                    enableForm(form);
+
+                    if (xhr.status === 200) {
+                        var response = JSON.parse(xhr.responseText);
+
+                        // Check for error message
+                        if (response.hasOwnProperty('error')) {
+                            var errorLine = document.createElement('p');
+                            errorLine.textContent = response.error;
+                            logDiv.appendChild(errorLine);
+                        } else {
+                            var logs = response.logs;
+                            logs.forEach(function (log) {
+                                var logLine = document.createElement('p');
+                                logLine.textContent = log;
+                                logDiv.appendChild(logLine);
+                            });
+                        }
+                    } else {
+                        console.error('Error:', xhr.status);
+                    }
+                }
+            };
+
+            disableForm(form);
+            xhr.send(formData);
+        }
+
+        function disableForm(form) {
+            var inputs = form.querySelectorAll('input, textarea, button, select');
+            inputs.forEach(function (input) {
+                input.disabled = true;
+            });
+        }
+
+        function enableForm(form) {
+            var inputs = form.querySelectorAll('input, textarea, button, select');
+            inputs.forEach(function (input) {
+                input.disabled = false;
+            });
+        }
+
+        function toggleDnsOnly() {
+            var isDnsOnlyCheckbox = document.getElementById('isDnsOnly');
+            var recordContentDiv = document.getElementById('record_content_div');
+            var tagDiv = document.getElementById('tag_div');
+            var recordTypeDiv = document.getElementById('record_type_div');
+            var instanceNameDiv = document.getElementById('instance_name_div');
+            var regionNameDiv = document.getElementById('region_name_div');
+
+            if (isDnsOnlyCheckbox.checked) {
+                recordContentDiv.style.display = 'block';
+                tagDiv.style.display = 'block';
+                recordTypeDiv.style.display = 'block';
+                instanceNameDiv.style.display = 'none';
+                regionNameDiv.style.display = 'none';
+            } else {
+                recordContentDiv.style.display = 'none';
+                tagDiv.style.display = 'none';
+                recordTypeDiv.style.display = 'none';
+                instanceNameDiv.style.display = 'block';
+                regionNameDiv.style.display = 'block';
+            }
+        }
+    </script>
+    <script>
+        // Restore form values on page load
+        window.addEventListener('load', function () {
+            var form = document.getElementById('form');
+            var formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+
+            Object.keys(formValues).forEach(function (key) {
+                form.elements[key].value = formValues[key];
+            });
+        });
+
+        // Save form values on form submit
+        document.getElementById('form').addEventListener('submit', function (e) {
+            var form = e.target;
+            var formValues = {};
+
+            Array.from(form.elements).forEach(function (element) {
+                if (element.name) {
+                    formValues[element.name] = element.value;
+                }
+            });
+
+            localStorage.setItem('formValues', JSON.stringify(formValues));
+        });
+    </script>
+</body>
+</html>
