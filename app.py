@@ -17,7 +17,6 @@ def execute_business_logic(instance_name, record_names, api_key, email, zone_id,
 
     # 将参数传递给业务逻辑代码
     instance_name = instance_name.strip()
-    record_names = [name.strip() for name in record_names.split(',')]
     api_key = api_key.strip()
     email = email.strip()
     zone_id = zone_id.strip()
@@ -84,50 +83,7 @@ def execute_business_logic(instance_name, record_names, api_key, email, zone_id,
     print_log('开始修改cloudflareDNS解析。。。。。')
 
     # 获取指定名称和标签的DNS记录ID
-    def get_dns_record_id(name):
-        url = f'https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records?type=A&name={name}'
-        headers = {
-            'X-Auth-Email': email,
-            'X-Auth-Key': api_key,
-            'Content-Type': 'application/json'
-        }
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            data = response.json()
-            if data['result']:
-                return data['result'][0]['id']
-        return None
-
-    # 修改DNS记录
-    def change_dns_record(record_names, record_type, content):
-        for name in record_names:
-            record_id = get_dns_record_id(name)
-            if record_id:
-                update_dns_record(record_id, name, record_type, content)
-            else:
-                print_log(f'找不到名称为 {name} 的DNS记录，无法修改')
-
-    # 修改DNS记录
-    def update_dns_record(record_id, name, record_type, content):
-        url = f'https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records/{record_id}'
-        headers = {
-            'X-Auth-Email': email,
-            'X-Auth-Key': api_key,
-            'Content-Type': 'application/json'
-        }
-        data = {
-            'type': record_type,
-            'name': name,
-            'content': content
-        }
-        response = requests.put(url, headers=headers, json=data)
-        if response.status_code == 200:
-            print_log(f'DNS记录 {name} 指向：{content}修改成功')
-        else:
-            print_log(f'修改DNS记录 {name} 指向：{content}失败')
-
-    change_dns_record(record_names, 'A', new_ip_address)
-
+    change_dns_record(record_names, 'A', new_ip_address, '2', zone_id, email, api_key)
 
     return logs
 
@@ -183,9 +139,9 @@ def update_dns_record(record_id, name, record_type, content, zone_id, email, api
     }
     response = requests.put(url, headers=headers, json=data)
     if response.status_code == 200:
-        return f'DNS记录 {name} 修改成功'
+        return f'DNS记录 {name}指向-->{content} 修改成功'
     else:
-        return f'修改DNS记录 {name} 失败'
+        return f'修改DNS记录 {name}指向-->{content}失败'
 
 
 # 新增或修改DNS记录
