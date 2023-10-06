@@ -28,11 +28,14 @@ apt-get install python3.9
 pip install -r requirements.txt
 ```
 
-
+## 修改密码
+```bash
+sed -i 's/yourcode/yourpass/g' app.py
+```
 
 ## 运行
 
 ```bash
-python3 app.py
+nohup python3 app.py &
 ```
 
