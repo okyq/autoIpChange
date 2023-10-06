@@ -1,3 +1,4 @@
+import botocore.errorfactory
 from flask import Flask, render_template, request, jsonify
 import boto3
 import requests
@@ -26,8 +27,11 @@ def execute_business_logic(instance_name, record_names, api_key, email, zone_id,
         client = boto3.client('lightsail', region_name=region_name)
     else:
         client = boto3.client('lightsail')
+    print_log(f'获取到client:{client}')
     # 获取实例信息
     instance_response = client.get_instance(instanceName=instance_name)
+    client.close()
+    print_log('关闭lightsailClient')
     instance = instance_response['instance']
 
     # 获取实例的 IP 地址
@@ -61,8 +65,6 @@ def execute_business_logic(instance_name, record_names, api_key, email, zone_id,
     client.attach_static_ip(staticIpName=ip_name, instanceName=instance_name)
     print_log(f'已经将新的ip{ip_name}附加到实例{instance_name}上')
 
-    client.close()
-    print_log('关闭lightsailClient')
 
     if len(region_name) > 2:
         # 创建Lightsail客户端
@@ -72,6 +74,8 @@ def execute_business_logic(instance_name, record_names, api_key, email, zone_id,
     print_log('创建新的lightsailClient')
     # 获取实例信息
     instance_response = client.get_instance(instanceName=instance_name)
+    client.close()
+    print_log('关闭lightsailClient')
     instance = instance_response['instance']
 
     # 获取实例的 IP 地址
@@ -124,8 +128,6 @@ def execute_business_logic(instance_name, record_names, api_key, email, zone_id,
 
     change_dns_record(record_names, 'A', new_ip_address)
 
-    # 执行业务逻辑代码
-    # ...
 
     return logs
 
@@ -214,9 +216,8 @@ def index():
 def changeip():
     logs.clear()
     password = request.form.get('password')
-    if password != 'xxx': #输入一个校验码
+    if password != 'yourcode': #输入一个校验码
         return jsonify({'error': 'Invalid password'})
-
     instance_name = request.form.get('instance_name')
     record_names = request.form.get('record_names')
     api_key = request.form.get('api_key')
@@ -230,12 +231,15 @@ def changeip():
     isDnsOnly = request.form.get('isDnsOnly')
     print(request.form)
     print(tag)
-    if isDnsOnly is not None and isDnsOnly == "on":
-        change_dns_record(record_names, record_type, record_content, tag, zone_id, email, api_key)
-    else:
-        execute_business_logic(instance_name, record_names, api_key, email, zone_id, region_name)
-
-    return jsonify({'logs': logs})
+    try:
+        if isDnsOnly is not None and isDnsOnly == "on":
+            change_dns_record(record_names, record_type, record_content, tag, zone_id, email, api_key)
+        else:
+            execute_business_logic(instance_name, record_names, api_key, email, zone_id, region_name)
+    except Exception as e:
+        print_log(f'程序异常:{str(e)}')
+    finally:
+        return jsonify({'logs': logs})
 
 
 if __name__ == '__main__':
